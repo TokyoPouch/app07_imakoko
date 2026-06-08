@@ -35,99 +35,15 @@ async function tryGenerateContent(ai, modelList, generateConfig) {
 }
 
 // ── ローカルフォールバック（人生テーマ風キーワードマッチング） ──
-// キーワード → 人生テーマへのマッピング
-const LOCAL_LIFE_THEME_MAP = [
-  {
-    keys: ['ミャンマー', 'mpants', '民族衣装', '遠州織', '和織', '反物', '布', '染め', '着物', '縫い', '刺繍', '綿', '伝統布', 'テキスタイル'],
-    theme: '文化や布の魅力を未来へ残したい'
-  },
-  {
-    keys: ['認知症', '物忘れ', '記憶', '忘れる', 'Future Me', 'futureme', '思い出', '過去の自分'],
-    theme: '忘れることと自分らしさを考え続けている'
-  },
-  {
-    keys: ['AI', 'Gemini', 'ChatGPT', 'GPT', 'LLM', '生成AI', '人工知能', 'Web3', 'ブロックチェーン', 'blockchain', 'NFT', 'crypto'],
-    theme: 'AIと人の関係を探求している'
-  },
-  {
-    keys: ['写真', '昔の写真', '思い出', '記録', '手帳', 'ログ', 'アーカイブ'],
-    theme: '思い出を未来へ残したい'
-  },
-  {
-    keys: ['ものづくり', '工芸', 'クラフト', 'DIY', '制作', '作家', 'アトリエ', '工房'],
-    theme: 'ものづくりを通して人とつながりたい'
-  },
-  {
-    keys: ['介護', '高齢', '福祉', 'ケア', '支援', 'サポート', 'バリアフリー'],
-    theme: '誰もが自分らしく生きられる社会をつくりたい'
-  },
-  {
-    keys: ['プログラミング', 'コード', '開発', 'エンジニア', 'アプリ', 'deploy', 'vercel', 'github'],
-    theme: '技術で人の暮らしをよくしたい'
-  },
-  {
-    keys: ['音楽', 'くるり', 'K-pop', 'kpop', 'spotify', 'プレイリスト', 'ライブ', 'コンサート', 'バンド', 'ジャズ', 'Jazz'],
-    theme: '音楽と感情の関係を探り続けている'
-  },
-  {
-    keys: ['旅行', '旅', '海外', '観光', 'ホテル', 'フライト', '文化交流', '異文化'],
-    theme: '旅で出会う文化と人に魅せられている'
-  },
-  {
-    keys: ['映画', 'cinema', 'Netflix', 'アニメ', 'ドラマ', '脚本', '物語', 'ストーリー'],
-    theme: '物語が人に与える力を信じている'
-  },
-  {
-    keys: ['本', '読書', '漫画', '小説', '書籍', '作家', '文学'],
-    theme: '言葉と物語に自分を重ねている'
-  },
-  {
-    keys: ['起業', 'ビジネス', '販売', 'ショップ', 'ブランド', '事業', 'サービス', 'launch'],
-    theme: '自分のビジョンを形にして届けたい'
-  },
-];
-
 /**
- * ローカルフォールバック：記録 + 既存テーマから人生テーマを抽出する
+ * ローカルフォールバック：既存テーマをそのまま返す（固定辞書による抽出を廃止）
  * @param {string[]} currentThemes - 現在の人生テーマ文字列配列
  * @param {Array}    recentEntries - 直近の記録
  * @returns {string[]} 人生テーマの文字列配列（最大10件）
  */
 function buildLocalLifeThemes(currentThemes, recentEntries) {
   const safeExisting = Array.isArray(currentThemes) ? currentThemes : [];
-  const safeEntries  = Array.isArray(recentEntries) ? recentEntries : [];
-
-  // テーマ出現回数カウント用マップ
-  const countMap = {};
-
-  // 既存テーマをベースに取り込む
-  for (const theme of safeExisting) {
-    if (typeof theme === 'string' && theme.trim()) {
-      countMap[theme.trim()] = (countMap[theme.trim()] || 0) + 2; // 既存は重みを高く
-    }
-  }
-
-  // 記録からキーワードで人生テーマを抽出
-  for (const entry of safeEntries) {
-    const text = ((entry.memo || '') + ' ' + (entry.url || '')).trim();
-    if (!text) continue;
-    const lower = text.toLowerCase();
-
-    for (const group of LOCAL_LIFE_THEME_MAP) {
-      for (const kw of group.keys) {
-        if (lower.includes(kw.toLowerCase())) {
-          countMap[group.theme] = (countMap[group.theme] || 0) + 1;
-          break;
-        }
-      }
-    }
-  }
-
-  // 出現回数降順でソートし、最大10件の文字列配列を返す
-  return Object.entries(countMap)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([theme]) => theme);
+  return safeExisting.filter(t => typeof t === 'string' && t.trim()).slice(0, 10);
 }
 
 // ============================================================

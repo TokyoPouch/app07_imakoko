@@ -1253,55 +1253,6 @@ function saveRecord() {
 // ============================================================
 const FUTURE_COLORS = ['yellow', 'blue', 'purple'];
 
-// キーワードマップ
-const KEYWORD_GROUPS = [
-  {
-    keys: ['認知症','補助金','介護','アプリ','高齢','福祉','ケア'],
-    template: (kw) => `この頃「${kw}」のことを考えていましたね。\n今も同じテーマに向き合っていますか？`
-  },
-  {
-    keys: ['AI','機械学習','Web3','ブロックチェーン','NFT','メタバース','講義','プログラミング','コード','エンジニア'],
-    template: (kw) => `「${kw}」に夢中だったあの頃。\n最近また取り組んでいることはありますか？`
-  },
-  {
-    keys: ['音楽','くるり','シティポップ','Jazz','ジャズ','プレイリスト','ライブ','コンサート','推し','バンド'],
-    template: (kw) => `この曲、今も聴いていますか？\n最近のお気に入りは変わりましたか？`
-  },
-  {
-    keys: ['友達','カフェ','展示会','イベント','飲み','ランチ','会った','集まり','パーティ'],
-    template: (kw) => `この時に会った人と、最近もつながっていますか？\nまた会いたい人はいましたか？`
-  },
-  {
-    keys: ['旅行','旅','観光','海外','国内','温泉','ホテル','景色'],
-    template: (kw) => `「${kw}」に行ったあの日。\nまた行きたいと思いますか？`
-  },
-  {
-    keys: ['本','読書','漫画','映画','ドラマ','アニメ','ゲーム'],
-    template: (kw) => `「${kw}」に夢中だったあの頃。\n今も続いていますか？`
-  }
-];
-
-function generateFutureMe(record) {
-  const text = ((record.memo || '') + ' ' + (record.url || '')).toLowerCase();
-
-  // URLのみ
-  if (record.url && !record.memo && !record.photo) {
-    return 'このURL、今見ても気になりますか？\nどんな理由で保存したか、覚えていますか？';
-  }
-  // 写真のみ
-  if (record.photo && !record.memo && !record.url) {
-    return 'この日の空気、覚えていますか？\n写真の向こうにいた人や場所を、思い出せますか？';
-  }
-
-  // キーワードマッチ
-  for (const group of KEYWORD_GROUPS) {
-    for (const kw of group.keys) {
-      if (text.includes(kw.toLowerCase())) {
-        return group.template(kw);
-      }
-    }
-  }
-
   // デフォルト（日付から季節を出す）
   const month = parseInt((record.date || '').slice(5,7), 10);
   if (month >= 3 && month <= 5)  return 'この春の記録を今見ると、何を思い出しますか？\nあの頃の自分に、今の自分から一言送るとしたら？';
@@ -1845,72 +1796,13 @@ function renderMemoryArea() {
  * ローカルフォールバック用・人生テーママッピング
  * キーワード → 深い人生テーマへ変換する
  */
-const LOCAL_LIFE_THEME_MAP = [
-  {
-    keys: ['ミャンマー','mpants','民族衣装','遠州織','和織','反物','布','染め','着物','縫い','刺繍','綿','伝統布','テキスタイル'],
-    theme: '文化や布の魅力を未来へ残したい'
-  },
-  {
-    keys: ['認知症','物忘れ','記憶','忘れる','Future Me','futureme','思い出','過去の自分'],
-    theme: '忘れることと自分らしさを考え続けている'
-  },
-  {
-    keys: ['AI','Gemini','ChatGPT','GPT','LLM','生成AI','人工知能','Web3','ブロックチェーン','blockchain','NFT','crypto'],
-    theme: 'AIと人の関係を探求している'
-  },
-  {
-    keys: ['写真','昔の写真','思い出','記録','手帳','ログ','アーカイブ'],
-    theme: '思い出を未来へ残したい'
-  },
-  {
-    keys: ['ものづくり','工芸','クラフト','DIY','制作','作家','アトリエ','工房'],
-    theme: 'ものづくりを通して人とつながりたい'
-  },
-  {
-    keys: ['介護','高齢','福祉','ケア','支援','サポート','バリアフリー'],
-    theme: '誰もが自分らしく生きられる社会をつくりたい'
-  },
-  {
-    keys: ['プログラミング','コード','開発','エンジニア','アプリ','deploy','vercel','github'],
-    theme: '技術で人の暮らしをよくしたい'
-  },
-  {
-    keys: ['音楽','くるり','K-pop','kpop','spotify','プレイリスト','ライブ','コンサート','バンド','ジャズ','Jazz'],
-    theme: '音楽と感情の関係を探り続けている'
-  },
-  {
-    keys: ['旅行','旅','海外','観光','ホテル','フライト','文化交流','異文化'],
-    theme: '旅で出会う文化と人に魅せられている'
-  },
-  {
-    keys: ['映画','cinema','Netflix','アニメ','ドラマ','脚本','物語','ストーリー'],
-    theme: '物語が人に与える力を信じている'
-  },
-  {
-    keys: ['本','読書','漫画','小説','書籍','作家','文学'],
-    theme: '言葉と物語に自分を重ねている'
-  },
-  {
-    keys: ['起業','ビジネス','販売','ショップ','ブランド','事業','サービス','launch'],
-    theme: '自分のビジョンを形にして届けたい'
-  },
-];
-
 /**
  * テキスト（メモ+URL）から人生テーマにマッチするものを抽出する
+ * ※ v3.32: 固定辞書による抽出はコンセプトに合わないため廃止し、現在は空配列を返す。
+ * （将来的にGeminiでの意味抽出などのローカル処理を追加するまでのスタブ）
  */
 function extractLifeThemesFromText(text) {
-  const lower = text.toLowerCase();
-  const matched = [];
-  for (const group of LOCAL_LIFE_THEME_MAP) {
-    for (const kw of group.keys) {
-      if (lower.includes(kw.toLowerCase())) {
-        matched.push(group.theme);
-        break;
-      }
-    }
-  }
-  return matched;
+  return [];
 }
 
 /**
